@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import API_URL from '../config';
 
 function UserDashboard() {
     const navigate = useNavigate();
@@ -18,7 +19,9 @@ function UserDashboard() {
 
     const loadProviders = async () => {
         try {
-            const response = await axios.get('/providersInfo');
+            console.log('Fetching providers from:', `${API_URL}/providersInfo`);
+            const response = await axios.get(`${API_URL}/providersInfo`);
+            console.log('Response:', response.data);
             if (response.data && Array.isArray(response.data)) {
                 setProviders(response.data);
                 setFilteredProviders(response.data);

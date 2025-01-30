@@ -7,11 +7,19 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-    origin: ["http://localhost:3000", "https://service-hunt-react.onrender.com"],
+    origin: [
+        "http://localhost:3000",
+        "https://service-hunt-react.onrender.com",
+        "https://service-hunt.onrender.com"
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
-    credentials: true
+    credentials: true,
+    exposedHeaders: ['Access-Control-Allow-Origin']
 }));
+
+// Enable pre-flight requests for all routes
+app.options('*', cors());
 
 // Parse JSON bodies
 app.use(express.json());
