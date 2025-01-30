@@ -5,27 +5,27 @@ const path = require("path");
 require('dotenv').config();
 const app = express();
 
-// CORS middleware to handle preflight requests
-app.use((req, res, next) => {
-    const allowedOrigins = ['http://localhost:3000', 'https://service-hunt-react.onrender.com'];
-    const origin = req.headers.origin;
-    
-    if (allowedOrigins.includes(origin)) {
-        res.header('Access-Control-Allow-Origin', origin);
-    }
-    
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    
-    // Handle preflight
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
-    
-    next();
-});
+// Configure CORS
+const corsOptions = {
+    origin: function (origin, callback) {
+        const allowedOrigins = ['http://localhost:3000', 'https://service-hunt-react.onrender.com'];
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
+};
+
+app.use(cors(corsOptions));
+
+// Handle OPTIONS preflight requests
+app.options('*', cors(corsOptions));
 
 // Parse JSON bodies
 app.use(express.json());
@@ -145,6 +145,9 @@ app.post("/create-profile", async (req, res) => {
 
 // Get profile by UserId
 app.get("/get-profile/:UserId", async (req, res) => {
+    console.log('GET /get-profile/:UserId called with params:', req.params);
+    console.log('Request headers:', req.headers);
+    
     try {
         const userId = parseInt(req.params.UserId);
         console.log(`Fetching profile for UserId: ${userId}`);
@@ -159,6 +162,9 @@ app.get("/get-profile/:UserId", async (req, res) => {
         console.log('Found profile:', profile);
         
         if (profile) {
+            // Set explicit CORS headers for this response
+            res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+            res.header('Access-Control-Allow-Credentials', 'true');
             res.json(profile);
         } else {
             console.log(`No profile found for UserId: ${userId}`);
