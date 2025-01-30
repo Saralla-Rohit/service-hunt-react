@@ -19,9 +19,9 @@ function UserDashboard() {
 
     const loadProviders = async () => {
         try {
-            console.log('Fetching providers from:', `${API_URL}/providersInfo`);
-            const response = await axios.get(`${API_URL}/providersInfo`);
-            console.log('Response:', response.data);
+            const response = await axios.get(`${API_URL}/providersInfo`, {
+                withCredentials: true
+            });
             if (response.data && Array.isArray(response.data)) {
                 setProviders(response.data);
                 setFilteredProviders(response.data);

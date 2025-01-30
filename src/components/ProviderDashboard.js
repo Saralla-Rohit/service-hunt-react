@@ -25,26 +25,16 @@ function ProviderDashboard() {
 
     const loadProfile = async () => {
         try {
-            console.log('Attempting to load profile for userId:', userId);
-            const response = await axios({
-                method: 'get',
-                url: `${API_URL}/get-profile/${userId}`,
-                withCredentials: true,
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Origin': window.location.origin
-                }
+            const response = await axios.get(`${API_URL}/get-profile/${userId}`, {
+                withCredentials: true
             });
             
-            console.log('Profile response:', response.data);
             if (response.data) {
                 setProfile(response.data);
             }
         } catch (error) {
             console.error('Failed to load profile:', error);
             if (error.response) {
-                console.error('Error response:', error.response.data);
                 if (error.response.status === 404) {
                     navigate('/create-profile');
                     return;
