@@ -1,0 +1,65 @@
+{
+  "engines": {
+    "node": "20.11.1"
+  },
+  "name": "service-hunt",
+  "version": "1.0.0",
+  "description": "user can access all types of services info at one place in their locality which gives user variety of options to pick from",
+  "main": "server/api.js",
+  "scripts": {
+    "start": "node server/api.js",
+    "server": "nodemon server/api.js",
+    "client": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Saralla-Rohit/service-hunt.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Saralla-Rohit/service-hunt/issues"
+  },
+  "homepage": ".",
+  "proxy": "http://localhost:5000",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.7.2",
+    "ajv": "^8.17.1",
+    "ajv-keywords": "^5.1.0",
+    "axios": "^1.6.7",
+    "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jquery": "^3.7.1",
+    "jquery.cookie": "^1.4.1",
+    "js-cookie": "^3.0.5",
+    "mongodb": "^6.12.0",
+    "multer": "^1.4.5-lts.1",
+    "react": "^18.2.0",
+    "react-bootstrap": "^2.10.9",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.0",
+    "react-scripts": "5.0.1"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.1.9"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

@@ -1,0 +1,152 @@
+body{
+    background-image: url("/public/images/background-image.png");
+    background-size: cover;
+    height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f8f9fa;
+}
+.shade{
+    background-color: rgba(0,0,0,0.3);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hover-shadow {
+    transition: all 0.3s ease-in-out;
+}
+
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+}
+
+.transition-all {
+    transition: all 0.3s ease-in-out;
+}
+
+.btn {
+    transition: all 0.3s ease-in-out;
+    padding: 0.5rem 1.5rem;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+    background-color: #4361ee;
+    border-color: #4361ee;
+}
+
+.btn-primary:hover {
+    background-color: #3a53d0;
+    border-color: #3a53d0;
+}
+
+.btn-outline-primary {
+    color: #4361ee;
+    border-color: #4361ee;
+}
+
+.btn-outline-primary:hover {
+    background-color: #4361ee;
+    border-color: #4361ee;
+}
+
+/* Form Controls */
+.form-control, .form-select {
+    border-radius: 0.5rem;
+    border: 1px solid #dee2e6;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #4361ee;
+    box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+}
+
+/* Navbar */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Sidebar Animation */
+@media (max-width: 991.98px) {
+    .col-lg-3.show {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1045;
+        width: 300px;
+        background: white;
+        padding: 1rem;
+        overflow-y: auto;
+        transform: translateX(0);
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .col-lg-3:not(.show) {
+        transform: translateX(-100%);
+    }
+}
+
+/* Modal Animation */
+.modal.fade .modal-dialog {
+    transform: scale(0.8);
+    transition: transform 0.3s ease-in-out;
+}
+
+.modal.show .modal-dialog {
+    transform: scale(1);
+}
+
+/* Loading Spinner */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Icons */
+.fas {
+    transition: all 0.2s ease-in-out;
+}
+
+.card:hover .fas {
+    transform: scale(1.1);
+}
+
+/* Utility Classes */
+.bg-opacity-95 {
+    --bs-bg-opacity: 0.95;
+}
+
+.transition-all {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
