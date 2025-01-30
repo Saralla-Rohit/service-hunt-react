@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5000'
-    : 'https://service-hunt.onrender.com';
+    : 'https://service-hunt-react.onrender.com';
 
 function Register() {
     const navigate = useNavigate();
