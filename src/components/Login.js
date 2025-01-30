@@ -70,6 +70,7 @@ function Login() {
                                             onChange={(e) => setFormData(prev => ({ ...prev, userId: e.target.value }))}
                                             required
                                             disabled={loading}
+                                            placeholder='eg: 1'
                                         />
                                     </div>
 
@@ -82,6 +83,7 @@ function Login() {
                                             onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                                             required
                                             disabled={loading}
+                                            placeholder='eg: 1234'
                                         />
                                     </div>
 
