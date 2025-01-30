@@ -5,21 +5,27 @@ const path = require("path");
 require('dotenv').config();
 const app = express();
 
-// CORS configuration
-app.use(cors({
-    origin: [
-        "http://localhost:3000",
-        "https://service-hunt-react.onrender.com",
-        "https://service-hunt.onrender.com"
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
-    credentials: true,
-    exposedHeaders: ['Access-Control-Allow-Origin']
-}));
-
-// Enable pre-flight requests for all routes
-app.options('*', cors());
+// CORS middleware to handle preflight requests
+app.use((req, res, next) => {
+    const allowedOrigins = ['http://localhost:3000', 'https://service-hunt-react.onrender.com'];
+    const origin = req.headers.origin;
+    
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
+    
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    
+    // Handle preflight
+    if (req.method === 'OPTIONS') {
+        res.status(200).end();
+        return;
+    }
+    
+    next();
+});
 
 // Parse JSON bodies
 app.use(express.json());
@@ -140,14 +146,22 @@ app.post("/create-profile", async (req, res) => {
 // Get profile by UserId
 app.get("/get-profile/:UserId", async (req, res) => {
     try {
+        const userId = parseInt(req.params.UserId);
+        console.log(`Fetching profile for UserId: ${userId}`);
+        
         const db = await connectDB();
-        const profile = await db.collection("providersInfo").findOne({ 
-            UserId: parseInt(req.params.UserId) 
-        });
+        if (!db) {
+            console.error('Database connection failed');
+            return res.status(500).json({ error: "Database connection failed" });
+        }
+
+        const profile = await db.collection("providersInfo").findOne({ UserId: userId });
+        console.log('Found profile:', profile);
         
         if (profile) {
             res.json(profile);
         } else {
+            console.log(`No profile found for UserId: ${userId}`);
             res.status(404).json({ message: "Profile not found" });
         }
     } catch (err) {
