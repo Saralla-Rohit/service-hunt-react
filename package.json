@@ -4,13 +4,13 @@
   },
   "name": "service-hunt",
   "version": "1.0.0",
-  "description": "user can access all types of services info at one place in their locality which gives user variety of options to pick from",
+  "description": "User can access all types of services info at one place in their locality which gives user variety of options to pick from",
   "main": "server/api.js",
   "scripts": {
     "start": "node server/api.js",
     "server": "nodemon server/api.js",
     "client": "react-scripts start",
-    "build": "echo 'Building the app with react-scripts' && react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test",
     "dev": "concurrently \"npm run server\" \"npm run client\""
   },
