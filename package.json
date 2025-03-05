@@ -10,7 +10,7 @@
     "start": "node server/api.js",
     "server": "nodemon server/api.js",
     "client": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "echo 'Building the app with react-scripts' && react-scripts build",
     "test": "react-scripts test",
     "dev": "concurrently \"npm run server\" \"npm run client\""
   },
