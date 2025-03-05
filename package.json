@@ -23,8 +23,8 @@
   "bugs": {
     "url": "https://github.com/Saralla-Rohit/service-hunt/issues"
   },
-  "homepage": ".",
-  "proxy": "http://localhost:5000",
+  "homepage": "http://.",
+  "proxy": "http://localhost:5678",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
     "ajv": "^8.17.1",
@@ -61,5 +61,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "keywords": []
 }

@@ -330,7 +330,7 @@ app.get("*", (req, res) => {
 
 // Ensure database connection before starting the server
 connectDB().then(() => {
-    const PORT = process.env.PORT || 5000;
+    const PORT = process.env.PORT || 5678;
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
         console.log('Node environment:', process.env.NODE_ENV);
