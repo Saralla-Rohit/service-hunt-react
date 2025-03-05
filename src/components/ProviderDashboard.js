@@ -4,7 +4,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000'
+    ? 'http://localhost:5678'
     : 'https://service-hunt-react.onrender.com';
 
 function ProviderDashboard() {

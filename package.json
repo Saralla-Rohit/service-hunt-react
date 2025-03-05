@@ -4,7 +4,7 @@
   },
   "name": "service-hunt",
   "version": "1.0.0",
-  "description": "user can access all types of services info at one place in their locality which gives user variety of options to pick from",
+  "description": "User can access all types of services info at one place in their locality which gives user variety of options to pick from",
   "main": "server/api.js",
   "scripts": {
     "start": "node server/api.js",
@@ -23,8 +23,8 @@
   "bugs": {
     "url": "https://github.com/Saralla-Rohit/service-hunt/issues"
   },
-  "homepage": ".",
-  "proxy": "http://localhost:5000",
+  "homepage": "http://.",
+  "proxy": "http://localhost:5678",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.7.2",
     "ajv": "^8.17.1",
@@ -61,5 +61,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "keywords": []
 }
