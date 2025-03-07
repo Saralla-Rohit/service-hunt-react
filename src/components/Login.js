@@ -22,8 +22,8 @@ function Login() {
         try {
             const response = await axios.get('/providers');
             const user = response.data.find(provider => 
-                provider.UserId === parseInt(formData.userId) && 
-                provider.Password === formData.password
+                provider.UserId == parseInt(formData.userId) && 
+                provider.Password == formData.password
             );
             
             if (user) {
