@@ -1,7 +1,7 @@
 // This file contains the old jQuery code for reference
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3000'
-    : 'https://service-hunt-react.onrender.com';
+    : 'https://service-hunt-react-1.onrender.com';
 
 function loadView(url, callback) {
     $.ajax({

@@ -7,7 +7,7 @@ const app = express();
 
 // Basic CORS configuration
 app.use(cors({
-    origin: ['http://localhost:3000', 'https://service-hunt-react.onrender.com'],
+    origin: ['http://localhost:3000', 'https://service-hunt-react-1.onrender.com'],
     credentials: true
 }));
 
