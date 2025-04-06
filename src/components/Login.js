@@ -51,7 +51,7 @@ function Login() {
                 
                 // Check if user has a profile
                 try {
-                    const profileResponse = await axios.get(`/api/provider-profile/${user.email}`);
+                    const profileResponse = await axios.get(`/get-profile/${user.email}`);
                     if (profileResponse.data.success) {
                         navigate('/provider-dashboard');
                     } else {
