@@ -169,13 +169,7 @@ app.post("/create-profile", async (req, res) => {
         const db = await connectDB();
         const { email, userName, mobileNumber, yearsOfExperience, hourlyRate, service, location } = req.body;
 
-        // Validate required fields
-        if (!email || !userName || !service || !location) {
-            return res.status(400).json({ 
-                success: false,
-                message: "Missing required fields" 
-            });
-        }
+       
 
         // Check if profile with the email already exists
         const existingProfile = await db.collection("providersInfo").findOne({ 
