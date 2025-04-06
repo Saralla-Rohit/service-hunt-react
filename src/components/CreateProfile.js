@@ -8,9 +8,13 @@ const API_URL = window.location.hostname === 'localhost' || window.location.host
     : 'https://service-hunt-react-1.onrender.com';
 
 function CreateProfile() {
+    const navigate = useNavigate();
+    const email = Cookies.get('email');
+    const isEditing = window.location.pathname === '/edit-profile';
+
     const [formData, setFormData] = useState({
         UserName: '',
-        Email: '',
+        Email: email || '',
         MobileNumber: '',
         YearsOfExperience: '',
         HourlyRate: '',
@@ -20,13 +24,9 @@ function CreateProfile() {
 
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
-
-    const userId = Cookies.get('userid');
-    const isEditing = window.location.pathname === '/edit-profile';
 
     useEffect(() => {
-        if (!userId) {
+        if (!email) {
             navigate('/login');
             return;
         }
@@ -36,15 +36,24 @@ function CreateProfile() {
         } else {
             getCityFromIP();
         }
-    }, [userId, navigate, isEditing]);
+    }, [email, navigate, isEditing]);
 
     const fetchExistingProfile = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_URL}/get-profile/${userId}`);
-            if (response.data) {
-                setFormData(response.data);
-                if (!response.data.Location) {
+            const response = await axios.get(`${API_URL}/get-profile/${email}`);
+            if (response.data && response.data.success) {
+                const profile = response.data.profile;
+                setFormData({
+                    UserName: profile.userName || '',
+                    Email: profile.email || '',
+                    MobileNumber: profile.mobileNumber || '',
+                    YearsOfExperience: profile.yearsOfExperience || '',
+                    HourlyRate: profile.hourlyRate || '',
+                    Service: profile.service || '',
+                    Location: profile.location || ''
+                });
+                if (!profile.location) {
                     getCityFromIP();
                 }
             }
@@ -58,7 +67,9 @@ function CreateProfile() {
 
     const getCityFromIP = async () => {
         try {
-            const response = await axios.get('https://ipapi.co/json/');
+            const response = await axios.get('https://ipapi.co/json/', {
+                withCredentials: false
+            });
             if (response.data && response.data.city) {
                 setFormData(prev => ({
                     ...prev,
@@ -77,15 +88,22 @@ function CreateProfile() {
 
         try {
             const data = {
-                ...formData,
-                UserId: parseInt(userId),
-                YearsOfExperience: parseInt(formData.YearsOfExperience),
-                HourlyRate: parseInt(formData.HourlyRate)
+                email: email,
+                userName: formData.UserName,
+                mobileNumber: formData.MobileNumber,
+                yearsOfExperience: parseInt(formData.YearsOfExperience) || 0,
+                hourlyRate: parseInt(formData.HourlyRate) || 0,
+                service: formData.Service,
+                location: formData.Location
             };
 
             if (isEditing) {
-                await axios.put(`${API_URL}/edit-profile/${userId}`, data);
-                alert('Profile updated successfully!');
+                const response = await axios.put(`${API_URL}/edit-profile/${email}`, data);
+                if (response.data && response.data.success) {
+                    alert('Profile updated successfully!');
+                } else {
+                    throw new Error(response.data?.message || 'Failed to update profile');
+                }
             } else {
                 await axios.post(`${API_URL}/create-profile`, data);
                 alert('Profile created successfully!');
@@ -131,7 +149,7 @@ function CreateProfile() {
                                             />
                                         </div>
 
-                                        <div className="col-md-6">
+                                        {/* <div className="col-md-6">
                                             <label className="form-label">Email</label>
                                             <input
                                                 type="email"
@@ -140,7 +158,7 @@ function CreateProfile() {
                                                 onChange={(e) => setFormData({...formData, Email: e.target.value})}
                                                 required
                                             />
-                                        </div>
+                                        </div> */}
 
                                         <div className="col-md-6">
                                             <label className="form-label">Service Type</label>

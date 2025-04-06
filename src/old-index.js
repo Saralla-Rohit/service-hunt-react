@@ -18,7 +18,7 @@ function loadView(url, callback) {
 }
 
 // Get user ID from cookies to determine if logged in
-const userId = $.cookie("userid");
+const email = $.cookie("email");
 
 // Profile HTML template
 // Profile HTML template with added Location field
@@ -54,11 +54,11 @@ const profileTemplate = (profile) =>
     </div>`;
 
 // Check if user is logged in
-if (userId) {
+if (email) {
     loadView("/provider-dashboard.html", function () {
         // Fetch the profile data and render it immediately
         $.ajax({
-            url: API_URL + "/api/getProfile/" + userId,
+            url: API_URL + "/api/getProfile/" + email,
             method: "get",
             success: function (profile) {
                 $("#profileContainer").html(profileTemplate(profile));
@@ -74,7 +74,7 @@ if (userId) {
 
 // Register handler
 $(document).on("click", "#btnRegister", () => {
-    const userId = $("#txtUserId").val();
+    // const email = $("#txtEmail").val();
     const password = $("#txtPassword").val();
     const email = $("#txtEmail").val();
 
@@ -82,7 +82,6 @@ $(document).on("click", "#btnRegister", () => {
         url: API_URL + "/api/register",
         method: "post",
         data: {
-            userId,
             password,
             email
         },
@@ -102,19 +101,19 @@ $(document).on("click", "#btnRegister", () => {
 
 // Login handler
 $(document).on("click", "#btnLogin", () => {
-    const userId = $("#txtUserId").val();
+    const email = $("#txtEmail").val();
     const password = $("#txtPassword").val();
 
     $.ajax({
         url: API_URL + "/api/login",
         method: "post",
         data: {
-            userId,
+            email,
             password
         },
         success: function (users) {
             if (users.length > 0) {
-                $.cookie("userid", userId);
+                $.cookie("email", email);
                 loadView("/provider-dashboard.html");
             } else {
                 alert("Invalid credentials");
@@ -125,16 +124,16 @@ $(document).on("click", "#btnLogin", () => {
 
 // Signout handler
 $(document).on("click", "#btnSignout", () => {
-    $.removeCookie("userid");
+    $.removeCookie("email");
     loadView("/login.html");
 });
 
 $(document).on("click", "#btnEdit", (e) => {
     e.preventDefault();
-    const UserId = $.cookie("userid");
+    const Email = $.cookie("email");
 
     $.ajax({
-        url: API_URL + "/api/getProfile/" + UserId,
+        url: API_URL + "/api/getProfile/" + Email,
         method: "get",
         success: function (profile) {
             loadView("/edit-profile.html", () => {
@@ -154,11 +153,11 @@ $(document).on("click", "#btnEdit", (e) => {
 });
 
 $(document).on("click", "#btnSave", () => {
-    const UserId = $.cookie("userid");
+    const email = $.cookie("email");
     const profile = {
-        UserId,
+        Email,
         UserName: $("#txtEditName").val(),
-        Email: $("#txtEditEmail").val(),
+        // Email: $("#txtEditEmail").val(),
         MobileNumber: $("#txtEditMobileNumber").val(),
         YearsOfExperience: $("#txtEditYearsOfExperience").val(),
         HourlyRate: $("#txtEditHourlyRate").val(),
@@ -175,7 +174,7 @@ $(document).on("click", "#btnSave", () => {
                 alert("Profile updated successfully!");
                 loadView("/provider-dashboard.html", () => {
                     $.ajax({
-                        url: API_URL + "/api/getProfile/" + UserId,
+                        url: API_URL + "/api/getProfile/" + Email,
                         method: "get",
                         success: function (updatedProfile) {
                             $("#profileContainer").html(profileTemplate(updatedProfile));
@@ -198,10 +197,10 @@ $(document).on("click", "#btnSave", () => {
 
 $(document).on("click", "#btnCancelEdit", () => {
     loadView("/provider-dashboard.html", () => {
-        const UserId = $.cookie("userid");
-        if (UserId) {
+        const Email = $.cookie("email");
+        if (Email) {
             $.ajax({
-                url: API_URL + "/api/getProfile/" + UserId,
+                url: API_URL + "/api/getProfile/" + Email,
                 method: "get",
                 success: function (profile) {
                     $("#profileContainer").html(profileTemplate(profile));
@@ -231,7 +230,7 @@ $(document).on("click", "#btnLoadProviders", () => {
                                 <strong>Rate:</strong> ₹${provider.HourlyRate}/hr<br>
                                 <strong>Location:</strong> ${provider.Location}
                             </p>
-                            <button class="btn btn-primary book-service" data-provider-id="${provider.UserId}">
+                            <button class="btn btn-primary book-service" data-provider-id="${provider.Email}">
                                 Book Service
                             </button>
                         </div>
@@ -251,12 +250,12 @@ $(document).on("click", "#btnLoadProviders", () => {
 // Book service button handler
 $(document).on("click", ".book-service", function() {
     const providerId = $(this).data("provider-id");
-    const userId = $.cookie("userid");
+    const email = $.cookie("email");
 
     $.ajax({
         url: API_URL + "/api/bookService",
         method: "post",
-        data: { providerId, userId },
+        data: { providerId, email },
         success: function (users) {
             if (users.success) {
                 alert("Service booked successfully!");
@@ -366,7 +365,7 @@ function displayProviders(providers) {
                         <strong>Location:</strong> ${provider.Location}
                     </p>
                     <div class="d-flex justify-content-between align-items-center">
-                        <button class="btn btn-primary book-service" data-provider-id="${provider.UserId}">
+                        <button class="btn btn-primary book-service" data-provider-id="${provider.Email}">
                             Book Service
                         </button>
                         <button class="btn btn-info view-details" onclick="showProviderDetails(${JSON.stringify(provider)})">

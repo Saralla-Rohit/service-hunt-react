@@ -75,19 +75,69 @@ app.get("/providersInfo", async (req, res) => {
 app.post("/register-user", async (req, res) => {
     try {
         const db = await connectDB();
+
+        // Validate required fields
+        const { userName, email, password, mobile } = req.body;
+        
+        if (!userName || !email || !password) {
+            return res.status(400).json({ 
+                success: false,
+                message: "Missing required fields. Name, email and password are required." 
+            });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({ 
+                success: false,
+                message: "Password must be at least 6 characters long" 
+            });
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({ 
+                success: false,
+                message: "Invalid email format" 
+            });
+        }
+
+        // Check if email already exists (case insensitive)
+        const existingUser = await db.collection("providers").findOne({ 
+            email: { $regex: new RegExp('^' + email + '$', 'i') }
+        });
+        if (existingUser) {
+            return res.status(400).json({ 
+                success: false,
+                message: "Email already exists" 
+            });
+        }
+
+        // Register new user
         const user = {
-            UserId: parseInt(req.body.UserId),
-            UserName: req.body.UserName,
-            Email: req.body.Email,
-            Password: req.body.Password,
-            Mobile: parseInt(req.body.Mobile)
+            userName,
+            email,
+            password,
+            mobile: mobile ? parseInt(mobile) : null
         };
+        
         await db.collection("providers").insertOne(user);
-        console.log("User Registered");
-        res.json(user);
+        console.log("User Registered:", { email });
+
+        res.json({ 
+            success: true,
+            message: "Registration successful",
+            user: {
+                userName: user.userName,
+                email: user.email
+            }
+        });
     } catch (err) {
         console.error("Error registering user:", err);
-        res.status(500).json({ error: "Failed to register user" });
+        res.status(500).json({ 
+            success: false, 
+            message: "Failed to register user" 
+        });
     }
 });
 
@@ -96,11 +146,20 @@ app.get("/providers", async (req, res) => {
     try {
         const db = await connectDB();
         const providers = await db.collection("providers").find({}).toArray();
-        console.log("Providers data:", providers);
-        res.json(providers);
+        
+        res.json({ 
+            success: true,
+            providers: providers.map(p => ({
+                userName: p.userName,
+                email: p.email
+            }))
+        });
     } catch (err) {
         console.error("Error fetching providers:", err);
-        res.status(500).json({ error: "Error fetching providers" });
+        res.status(500).json({ 
+            success: false,
+            message: "Failed to fetch providers" 
+        });
     }
 });
 
@@ -108,82 +167,128 @@ app.get("/providers", async (req, res) => {
 app.post("/create-profile", async (req, res) => {
     try {
         const db = await connectDB();
+        const { email, userName, mobileNumber, yearsOfExperience, hourlyRate, service, location } = req.body;
+
+        // Validate required fields
+        if (!email || !userName || !service || !location) {
+            return res.status(400).json({ 
+                success: false,
+                message: "Missing required fields" 
+            });
+        }
+
+        // Check if profile with the email already exists
+        const existingProfile = await db.collection("providersInfo").findOne({ 
+            email: { $regex: new RegExp('^' + email + '$', 'i') }
+        });
+        if (existingProfile) {
+            return res.status(400).json({ 
+                success: false,
+                message: "Profile with this email already exists" 
+            });
+        }
+
+        // Create profile
         const profile = {
-            UserName: req.body.UserName,
-            Email: req.body.Email,
-            MobileNumber: req.body.MobileNumber,
-            YearsOfExperience: parseInt(req.body.YearsOfExperience),
-            HourlyRate: parseInt(req.body.HourlyRate),
-            Service: req.body.Service,
-            Location: req.body.Location,
-            UserId: parseInt(req.body.UserId),
+            email,
+            userName,
+            mobileNumber,
+            yearsOfExperience: yearsOfExperience ? parseInt(yearsOfExperience) : 0,
+            hourlyRate: hourlyRate ? parseInt(hourlyRate) : 0,
+            service,
+            location
         };
+
         await db.collection("providersInfo").insertOne(profile);
-        console.log("Profile Created");
-        res.send(profile);
+        console.log("Profile Created:", { email });
+
+        res.json({ 
+            success: true,
+            message: "Profile created successfully",
+            profile
+        });
     } catch (err) {
         console.error("Error creating profile:", err);
-        res.status(500).json({ error: "Failed to create profile" });
+        res.status(500).json({ 
+            success: false,
+            message: "Failed to create profile" 
+        });
     }
 });
 
-// Get profile by UserId
-app.get("/get-profile/:UserId", async (req, res) => {
-    console.log('GET /get-profile/:UserId called with params:', req.params);
-    console.log('Request headers:', req.headers);
-    
+// Get profile by Email
+app.get("/get-profile/:email", async (req, res) => {
     try {
-        const userId = parseInt(req.params.UserId);
-        console.log(`Fetching profile for UserId: ${userId}`);
-        
         const db = await connectDB();
-        if (!db) {
-            console.error('Database connection failed');
-            return res.status(500).json({ error: "Database connection failed" });
-        }
+        const email = req.params.email;
 
-        const profile = await db.collection("providersInfo").findOne({ UserId: userId });
-        console.log('Found profile:', profile);
-        
+        const profile = await db.collection("providersInfo").findOne({ email });
         if (profile) {
-            // Set explicit CORS headers for this response
-            res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-            res.header('Access-Control-Allow-Credentials', 'true');
-            res.json(profile);
+            res.json({ 
+                success: true,
+                profile
+            });
         } else {
-            console.log(`No profile found for UserId: ${userId}`);
-            res.status(404).json({ message: "Profile not found" });
+            res.status(404).json({ 
+                success: false,
+                message: "Profile not found" 
+            });
         }
     } catch (err) {
         console.error("Error fetching profile:", err);
-        res.status(500).json({ error: "Failed to fetch profile" });
+        res.status(500).json({ 
+            success: false,
+            message: "Failed to fetch profile" 
+        });
     }
 });
-
-// Edit provider profile by UserId
-app.put("/edit-profile/:UserId", async (req, res) => {
+// Edit provider profile by Email
+app.put("/edit-profile/:email", async (req, res) => {
     try {
         const db = await connectDB();
+        const emailParam = req.params.email;
+        const { userName, mobileNumber, yearsOfExperience, hourlyRate, service, location } = req.body;
+
+        // Validate required fields
+        if (!userName || !service || !location) {
+            return res.status(400).json({ 
+                success: false,
+                message: "Missing required fields" 
+            });
+        }
+
         const profile = {
-            UserName: req.body.UserName,
-            Email: req.body.Email,
-            MobileNumber: req.body.MobileNumber,
-            YearsOfExperience: parseInt(req.body.YearsOfExperience),
-            HourlyRate: parseInt(req.body.HourlyRate),
-            Service: req.body.Service,
-            Location: req.body.Location,
-            UserId: parseInt(req.params.UserId)
+            userName,
+            mobileNumber,
+            yearsOfExperience: yearsOfExperience ? parseInt(yearsOfExperience) : 0,
+            hourlyRate: hourlyRate ? parseInt(hourlyRate) : 0,
+            service,
+            location
         };
 
-        await db.collection("providersInfo").updateOne(
-            { UserId: parseInt(req.params.UserId) },
+        const result = await db.collection("providersInfo").updateOne(
+            { email: emailParam },
             { $set: profile }
         );
-        console.log("Profile Updated");
-        res.json({ success: true, message: "Profile updated successfully", profile });
+
+        if (result.modifiedCount > 0) {
+            res.json({ 
+                success: true, 
+                message: "Profile updated successfully", 
+                profile: { ...profile, email: emailParam }
+            });
+        } else {
+            res.status(404).json({ 
+                success: false, 
+                message: "Profile not found to update" 
+            });
+        }
     } catch (err) {
         console.error("Error updating profile:", err);
-        res.status(500).json({ success: false, message: "Error updating profile", error: err });
+        res.status(500).json({ 
+            success: false, 
+            message: "Error updating profile" 
+        });
     }
 });
 
@@ -192,11 +297,16 @@ app.get("/providersInfo", async (req, res) => {
     try {
         const db = await connectDB();
         const profiles = await db.collection("providersInfo").find({}).toArray();
-        console.log("Found profiles:", profiles);
-        res.json(profiles);
+        res.json({ 
+            success: true,
+            profiles
+        });
     } catch (err) {
         console.error("Error fetching profiles:", err);
-        res.status(500).json({ error: "Database error" });
+        res.status(500).json({ 
+            success: false,
+            message: "Failed to fetch profiles" 
+        });
     }
 });
 
@@ -204,32 +314,43 @@ app.get("/providersInfo", async (req, res) => {
 app.get("/api/getAllProvidersInfo", async (req, res) => {
     try {
         const db = await connectDB();
-        const providersInfo = await db.collection("providersInfo").find({}).toArray();
-        console.log("Service providers info:", providersInfo);
-        res.json(providersInfo);
+        const providers = await db.collection("providersInfo").find({}).toArray();
+        res.json({ 
+            success: true,
+            providers
+        });
     } catch (err) {
         console.error("Error getting providers info:", err);
-        res.status(500).json({ error: "Failed to get providers info" });
+        res.status(500).json({ 
+            success: false,
+            message: "Failed to get providers info" 
+        });
     }
 });
 
 // Get profiles by location
-app.get("/get-profiles/:Location", async (req, res) => {
+app.get("/get-profiles/:location", async (req, res) => {
     try {
         const db = await connectDB();
         const profiles = await db.collection("providersInfo")
             .find({ 
-                Location: { 
-                    $regex: req.params.Location, 
+                location: { 
+                    $regex: req.params.location, 
                     $options: 'i' 
                 } 
             })
             .toArray();
-        res.json(profiles);
-        console.log(profiles);
+
+        res.json({ 
+            success: true,
+            profiles
+        });
     } catch (err) {
         console.error("Error fetching profiles by location:", err);
-        res.status(500).json({ error: "Failed to fetch profiles by location" });
+        res.status(500).json({ 
+            success: false,
+            message: "Failed to fetch profiles by location" 
+        });
     }
 });
 
@@ -243,34 +364,49 @@ app.get("/get-filtered-providers", async (req, res) => {
 
         // Apply service filter if provided
         if (service) {
-            filter.Service = service;
+            filter.service = service;
         }
 
         // Apply location filter if provided
         if (location) {
-            filter.Location = location;
+            filter.location = location;
         }
 
         const providers = await db.collection("providersInfo")
             .find(filter)
             .toArray();
-        res.json(providers);
+
+        res.json({ 
+            success: true,
+            providers
+        });
     } catch (err) {
         console.error("Error fetching filtered providers:", err);
-        res.status(500).json({ error: "Failed to fetch filtered providers" });
+        res.status(500).json({ 
+            success: false,
+            message: "Failed to fetch filtered providers" 
+        });
     }
 });
 
 // Check if user ID exists
-app.get("/users/:userId", async (req, res) => {
+app.get("/users/:email", async (req, res) => {
     try {
         const db = await connectDB();
-        const userId = parseInt(req.params.userId);
-        const user = await db.collection("providers").find({ UserId: userId }).toArray();
-        res.json(user);
+        const email = req.params.email;
+        const users = await db.collection("providers").find({ email }).toArray();
+        
+        res.json({ 
+            success: true,
+            users,
+            exists: users.length > 0
+        });
     } catch (err) {
         console.error("Error checking user ID:", err);
-        res.status(500).json({ error: "Failed to check user ID" });
+        res.status(500).json({ 
+            success: false,
+            message: "Failed to check user ID" 
+        });
     }
 });
 
@@ -278,30 +414,43 @@ app.get("/users/:userId", async (req, res) => {
 app.post("/api/login", async (req, res) => {
     try {
         const db = await connectDB();
-        const { userId, password } = req.body;
+        const { email, password } = req.body;
         
-        // Find user in providers collection
+        if (!email || !password) {
+            return res.status(400).json({ 
+                success: false,
+                message: "Email and password are required" 
+            });
+        }
+
+        // Find user in providers collection (case insensitive email match)
         const user = await db.collection("providers").findOne({ 
-            UserId: parseInt(userId),
-            Password: password
+            email: { $regex: new RegExp('^' + email + '$', 'i') }
         });
 
-        if (user) {
-            res.json({ 
-                success: true, 
-                message: "Login successful",
-                user: {
-                    userId: user.UserId,
-                    userName: user.UserName,
-                    email: user.Email
-                }
-            });
-        } else {
-            res.status(401).json({ 
+        if (!user) {
+            return res.status(401).json({ 
                 success: false, 
                 message: "Invalid credentials" 
             });
         }
+
+        // Compare password (in a real app, use bcrypt or similar)
+        if (user.password !== password) {
+            return res.status(401).json({ 
+                success: false, 
+                message: "Invalid credentials" 
+            });
+        }
+
+        res.json({ 
+            success: true, 
+            message: "Login successful",
+            user: {
+                userName: user.userName,
+                email: user.email
+            }
+        });
     } catch (err) {
         console.error("Login error:", err);
         res.status(500).json({ 

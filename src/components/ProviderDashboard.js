@@ -12,25 +12,25 @@ function ProviderDashboard() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
-    const userId = Cookies.get('userid');
+    const email = Cookies.get('email');
     const username = Cookies.get('username');
 
     useEffect(() => {
-        if (!userId) {
+        if (!email) {
             navigate('/login');
             return;
         }
         loadProfile();
-    }, [userId, navigate]);
+    }, [email, navigate]);
 
     const loadProfile = async () => {
         try {
-            const response = await axios.get(`${API_URL}/get-profile/${userId}`, {
+            const response = await axios.get(`${API_URL}/get-profile/${email}`, {
                 withCredentials: true
             });
             
-            if (response.data) {
-                setProfile(response.data);
+            if (response.data && response.data.success) {
+                setProfile(response.data.profile);
             }
         } catch (error) {
             console.error('Failed to load profile:', error);
@@ -47,7 +47,7 @@ function ProviderDashboard() {
     };
 
     const handleSignOut = () => {
-        Cookies.remove('userid');
+        Cookies.remove('email');
         Cookies.remove('username');
         navigate('/');
     };
@@ -56,7 +56,7 @@ function ProviderDashboard() {
         navigate('/edit-profile');
     };
 
-    if (!userId) {
+    if (!email) {
         return null;
     }
 
@@ -106,7 +106,7 @@ function ProviderDashboard() {
         <div className="min-vh-100 bg-light">
             <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
                 <div className="container">
-                    <span className="navbar-brand">Welcome, {username || profile.UserName}</span>
+                    <span className="navbar-brand">Welcome, {username || profile.userName}</span>
                     <button 
                         className="btn btn-outline-light"
                         onClick={handleSignOut}
@@ -133,7 +133,7 @@ function ProviderDashboard() {
                                             <i className="fas fa-user text-primary me-2"></i>
                                             <div>
                                                 <small className="text-muted">Name</small>
-                                                <p className="mb-0 fw-bold">{profile.UserName}</p>
+                                                <p className="mb-0 fw-bold">{profile.userName || 'Not Provided'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -142,7 +142,7 @@ function ProviderDashboard() {
                                             <i className="fas fa-envelope text-primary me-2"></i>
                                             <div>
                                                 <small className="text-muted">Email</small>
-                                                <p className="mb-0 fw-bold">{profile.Email}</p>
+                                                <p className="mb-0 fw-bold">{profile.email || 'Not Provided'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -151,7 +151,7 @@ function ProviderDashboard() {
                                             <i className="fas fa-phone text-primary me-2"></i>
                                             <div>
                                                 <small className="text-muted">Mobile</small>
-                                                <p className="mb-0 fw-bold">{profile.MobileNumber}</p>
+                                                <p className="mb-0 fw-bold">{profile.mobileNumber || 'Not Provided'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -160,7 +160,7 @@ function ProviderDashboard() {
                                             <i className="fas fa-briefcase text-primary me-2"></i>
                                             <div>
                                                 <small className="text-muted">Experience</small>
-                                                <p className="mb-0 fw-bold">{profile.YearsOfExperience} years</p>
+                                                <p className="mb-0 fw-bold">{profile.yearsOfExperience ? `${profile.yearsOfExperience} years` : 'Not Provided'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -169,7 +169,7 @@ function ProviderDashboard() {
                                             <i className="fas fa-dollar-sign text-primary me-2"></i>
                                             <div>
                                                 <small className="text-muted">Hourly Rate</small>
-                                                <p className="mb-0 fw-bold">₹{profile.HourlyRate}</p>
+                                                <p className="mb-0 fw-bold">{profile.hourlyRate ? `₹${profile.hourlyRate}` : 'Not Provided'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -178,7 +178,7 @@ function ProviderDashboard() {
                                             <i className="fas fa-tools text-primary me-2"></i>
                                             <div>
                                                 <small className="text-muted">Service</small>
-                                                <p className="mb-0 fw-bold">{profile.Service}</p>
+                                                <p className="mb-0 fw-bold">{profile.service || 'Not Provided'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -187,7 +187,7 @@ function ProviderDashboard() {
                                             <i className="fas fa-map-marker-alt text-primary me-2"></i>
                                             <div>
                                                 <small className="text-muted">Location</small>
-                                                <p className="mb-0 fw-bold">{profile.Location || "Not Provided"}</p>
+                                                <p className="mb-0 fw-bold">{profile.location || 'Not Provided'}</p>
                                             </div>
                                         </div>
                                     </div>

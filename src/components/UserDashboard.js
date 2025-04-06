@@ -45,25 +45,25 @@ function UserDashboard() {
 
         if (currentFilters.service) {
             result = result.filter(provider => 
-                provider.Service && provider.Service.toLowerCase() === currentFilters.service.toLowerCase()
+                provider.service && provider.service.toLowerCase() === currentFilters.service.toLowerCase()
             );
         }
 
         if (currentFilters.location) {
             result = result.filter(provider => 
-                provider.Location?.toLowerCase().includes(currentFilters.location.toLowerCase())
+                provider.location?.toLowerCase().includes(currentFilters.location.toLowerCase())
             );
         }
 
         if (currentFilters.yearsOfExperience) {
             result = result.filter(provider => 
-                provider.YearsOfExperience >= parseInt(currentFilters.yearsOfExperience)
+                provider.yearsOfExperience >= parseInt(currentFilters.yearsOfExperience)
             );
         }
 
         if (currentFilters.hourlyRate) {
             result = result.filter(provider => 
-                provider.HourlyRate <= parseInt(currentFilters.hourlyRate)
+                provider.hourlyRate <= parseInt(currentFilters.hourlyRate)
             );
         }
 
@@ -90,14 +90,17 @@ function UserDashboard() {
 
     const getCityFromIP = async () => {
         try {
-            const response = await axios.get('https://ipapi.co/json/');
+            const response = await axios.get('https://ipapi.co/json/', {
+                withCredentials: false // Don't send credentials for external API
+            });
             if (response.data && response.data.city) {
                 const newFilters = { ...filters, location: response.data.city };
                 setFilters(newFilters);
                 applyFilters(newFilters);
             }
         } catch (error) {
-            setError('Failed to get location');
+            console.error('Location detection error:', error);
+            // Don't show error to user as this is not critical
         }
     };
 
@@ -251,27 +254,27 @@ function UserDashboard() {
                             </div>
                         ) : (
                             <div className="row g-4">
-                                {filteredProviders.map((provider) => (
-                                    <div key={provider.UserId} className="col-md-6 col-xl-4">
+                                {filteredProviders.map((provider, index) => (
+                                    <div key={provider.email || index} className="col-md-6 col-xl-4">
                                         <div className="card h-100 shadow-sm hover-shadow">
                                             <div className="card-body">
                                                 <div className="d-flex justify-content-between align-items-center mb-3">
-                                                    <h5 className="card-title mb-0">{provider.UserName}</h5>
-                                                    <span className="badge bg-primary">{provider.Service}</span>
+                                                    <h5 className="card-title mb-0">{provider.userName || 'Not Provided'}</h5>
+                                                    <span className="badge bg-primary">{provider.service || 'Not Provided'}</span>
                                                 </div>
                                                 
                                                 <div className="mb-3">
                                                     <p className="card-text mb-1">
                                                         <i className="fas fa-map-marker-alt text-secondary me-2"></i>
-                                                        {provider.Location}
+                                                        {provider.location || 'Location not provided'}
                                                     </p>
                                                     <p className="card-text mb-1">
                                                         <i className="fas fa-briefcase text-secondary me-2"></i>
-                                                        {provider.YearsOfExperience} years experience
+                                                        {provider.yearsOfExperience ? `${provider.yearsOfExperience} years experience` : 'Experience not provided'}
                                                     </p>
                                                     <p className="card-text">
                                                         <i className="fas fa-rupee-sign text-secondary me-2"></i>
-                                                        {provider.HourlyRate}/hour
+                                                        {provider.hourlyRate ? `₹${provider.hourlyRate}/hour` : 'Rate not provided'}
                                                     </p>
                                                 </div>
 
@@ -281,13 +284,13 @@ function UserDashboard() {
                                                     data-bs-target="#providerModal"
                                                     onClick={() => {
                                                         // Set provider details in modal
-                                                        document.getElementById('providerName').textContent = provider.UserName;
-                                                        document.getElementById('providerService').textContent = provider.Service;
-                                                        document.getElementById('providerExperience').textContent = provider.YearsOfExperience;
-                                                        document.getElementById('providerRate').textContent = provider.HourlyRate;
-                                                        document.getElementById('providerLocation').textContent = provider.Location;
-                                                        document.getElementById('providerContact').textContent = provider.MobileNumber;
-                                                        document.getElementById('providerEmail').textContent = provider.Email;
+                                                        document.getElementById('providerName').textContent = provider.userName || 'Not Provided';
+                                                        document.getElementById('providerService').textContent = provider.service || 'Not Provided';
+                                                        document.getElementById('providerExperience').textContent = provider.yearsOfExperience || 'Not Provided';
+                                                        document.getElementById('providerRate').textContent = provider.hourlyRate || 'Not Provided';
+                                                        document.getElementById('providerLocation').textContent = provider.location || 'Not Provided';
+                                                        document.getElementById('providerContact').textContent = provider.mobileNumber || 'Not Provided';
+                                                        document.getElementById('providerEmail').textContent = provider.email || 'Not Provided';
                                                     }}
                                                 >
                                                     Show Info

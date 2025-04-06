@@ -2,65 +2,91 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+// Configure axios
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5678'
     : 'https://service-hunt-react-1.onrender.com';
 
+axios.defaults.baseURL = API_URL;
+axios.defaults.withCredentials = true;
+
 function Register() {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        UserId: '',
-        UserName: '',
-        Email: '',
-        Password: '',
-        Mobile: ''
-    });
+    const initialFormState = {
+        userName: '',
+        email: '',
+        password: '',
+        mobile: ''
+    };
+
+    // Clear any previous error state when component mounts
+    React.useEffect(() => {
+        setError('');
+    }, []);
+    const [formData, setFormData] = useState(initialFormState);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: value || ''
         }));
 
         // Clear error message when user starts typing
-        if (name === 'UserId') {
-            setError('');
-        }
-    };
-
-    const checkUserId = async (userId) => {
-        try {
-            const response = await axios.get(`${API_URL}/users/${userId}`);
-            return response.data && response.data.length > 0;
-        } catch (err) {
-            console.error('Error checking user ID:', err);
-            return false;
-        }
+        setError('');
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (loading) return;
+
+        setLoading(true);
+        setError('');
         
         try {
-            // Check if user ID exists
-            const userExists = await checkUserId(formData.UserId);
-            if (userExists) {
-                setError('User ID already exists - try another');
+            // Validate password
+            if (formData.password.length < 6) {
+                setError('Password must be at least 6 characters long');
+                setLoading(false);
                 return;
             }
 
-            // Proceed with registration
-            await axios.post(`${API_URL}/register-user`, formData);
-            navigate('/login');
+            // Validate email format
+           
+
+            // Validate required fields
+           
+
+            // Clean up form data
+            const cleanedData = {
+                userName: formData.userName.trim(),
+                email: formData.email.trim().toLowerCase(),
+                password: formData.password,
+                mobile: formData.mobile.trim()
+            };
+            
+            console.log('Sending registration data:', cleanedData);
+            const response = await axios.post('/register-user', cleanedData);
+            
+            if (response.data.success) {
+                navigate('/login');
+            } else {
+                setError(response.data.message || 'Registration failed. Please try again.');
+            }
         } catch (err) {
-            console.error('Registration failed:', err);
-            setError('Registration failed. Please try again.');
+            console.error('Registration failed:', err.response?.data || err);
+            const errorMessage = err.response?.data?.message || 'Registration failed. Please try again.';
+            setError(errorMessage);
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleCancel = () => {
+        setFormData(initialFormState);
+        setError('');
         navigate('/auth');
     };
 
@@ -74,14 +100,14 @@ function Register() {
                         </div>
                         <div className="card-body">
                             <form onSubmit={handleSubmit}>
-                                <div className="mb-3">
-                                    <label htmlFor="txtRUserId" className="form-label">User ID</label>
+                                {/* <div className="mb-3">
+                                    <label htmlFor="txtREmail" className="form-label">User ID</label>
                                     <input
                                         type="text"
                                         className="form-control"
-                                        id="txtRUserId"
-                                        name="UserId"
-                                        value={formData.UserId}
+                                        id="txtREmail"
+                                        name="email"
+                                        value={formData.email}
                                         onChange={handleInputChange}
                                         required
                                     />
@@ -90,18 +116,25 @@ function Register() {
                                             {error}
                                         </div>
                                     )}
-                                </div>
+                                </div> */}
+
+                                {error && (
+                                    <div className="alert alert-danger" role="alert">
+                                        {error}
+                                    </div>
+                                )}
 
                                 <div className="mb-3">
                                     <label htmlFor="txtRUserName" className="form-label">User Name</label>
                                     <input
                                         type="text"
-                                        className="form-control"
+                                        className="form-control form-control-lg"
                                         id="txtRUserName"
-                                        name="UserName"
-                                        value={formData.UserName}
+                                        name="userName"
+                                        value={formData.userName}
                                         onChange={handleInputChange}
                                         required
+                                        disabled={loading}
                                     />
                                 </div>
 
@@ -109,12 +142,13 @@ function Register() {
                                     <label htmlFor="txtREmail" className="form-label">Email</label>
                                     <input
                                         type="email"
-                                        className="form-control"
+                                        className="form-control form-control-lg"
                                         id="txtREmail"
-                                        name="Email"
-                                        value={formData.Email}
+                                        name="email"
+                                        value={formData.email}
                                         onChange={handleInputChange}
                                         required
+                                        disabled={loading}
                                     />
                                 </div>
 
@@ -122,45 +156,57 @@ function Register() {
                                     <label htmlFor="txtRPassword" className="form-label">Password</label>
                                     <input
                                         type="password"
-                                        className="form-control"
+                                        className="form-control form-control-lg"
                                         id="txtRPassword"
-                                        name="Password"
-                                        value={formData.Password}
+                                        name="password"
+                                        value={formData.password}
                                         onChange={handleInputChange}
                                         required
+                                        disabled={loading}
                                     />
                                 </div>
 
-                                <div className="mb-3">
+                                <div className="mb-4">
                                     <label htmlFor="txtRMobile" className="form-label">Mobile</label>
                                     <input
                                         type="tel"
-                                        className="form-control"
+                                        className="form-control form-control-lg"
                                         id="txtRMobile"
-                                        name="Mobile"
-                                        value={formData.Mobile}
+                                        name="mobile"
+                                        value={formData.mobile}
                                         onChange={handleInputChange}
                                         pattern="[0-9]{10}"
-                                        required
+                                        disabled={loading}
                                     />
-                                    <small className="text-muted">Enter 10-digit mobile number</small>
+                                    <small className="text-muted">Enter 10-digit mobile number (optional)</small>
                                 </div>
 
                                 <div className="d-grid gap-2">
                                     <button
                                         type="submit"
-                                        className="btn btn-primary"
-                                        id="btnRegister"
+                                        className="btn btn-primary btn-lg rounded-pill py-3"
+                                        disabled={loading}
                                     >
-                                        Register
+                                        {loading ? (
+                                            <>
+                                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                Registering...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <i className="fas fa-user-plus me-2"></i>
+                                                Register
+                                            </>
+                                        )}
                                     </button>
                                     <button
                                         type="button"
-                                        className="btn btn-secondary"
+                                        className="btn btn-outline-secondary btn-lg rounded-pill py-3"
                                         onClick={handleCancel}
-                                        id="btnCancel"
+                                        disabled={loading}
                                     >
-                                        Cancel
+                                        <i className="fas fa-arrow-left me-2"></i>
+                                        Back
                                     </button>
                                 </div>
                             </form>

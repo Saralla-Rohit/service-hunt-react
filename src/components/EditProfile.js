@@ -5,32 +5,32 @@ import Cookies from 'js-cookie';
 
 function EditProfile() {
     const navigate = useNavigate();
-    const userId = Cookies.get('userid');
+    const email = Cookies.get('email');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
         UserName: '',
-        Email: '',
+        Email: email,
         MobileNumber: '',
         YearsOfExperience: '',
         HourlyRate: '',
         Service: '',
         Location: '',
-        UserId: userId
+        // Email: email
     });
 
     useEffect(() => {
-        if (!userId) {
+        if (!email) {
             navigate('/login');
             return;
         }
         loadProfile();
-    }, [userId, navigate]);
+    }, [email, navigate]);
 
     const loadProfile = async () => {
         try {
-            const response = await axios.get(`/get-profile/${userId}`);
+            const response = await axios.get(`/get-profile/${email}`);
             if (response.data) {
                 setFormData(response.data);
             }
@@ -58,7 +58,7 @@ function EditProfile() {
         setError('');
 
         try {
-            const response = await axios.put(`/edit-profile/${userId}`, formData);
+            const response = await axios.put(`/edit-profile/${email}`, formData);
             if (response.data.success) {
                 navigate('/provider-dashboard');
             } else {
@@ -112,7 +112,7 @@ function EditProfile() {
                                                 required
                                             />
                                         </div>
-                                        <div className="col-md-6">
+                                        {/* <div className="col-md-6">
                                             <label className="form-label">Email</label>
                                             <input
                                                 type="email"
@@ -122,7 +122,7 @@ function EditProfile() {
                                                 onChange={handleChange}
                                                 required
                                             />
-                                        </div>
+                                        </div> */}
                                         <div className="col-md-6">
                                             <label className="form-label">Mobile Number</label>
                                             <input

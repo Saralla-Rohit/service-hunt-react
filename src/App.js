@@ -10,7 +10,7 @@ import Home from './components/Home';
 import Cookies from 'js-cookie';
 
 function App() {
-  const userId = Cookies.get('userid');
+  const email = Cookies.get('email');
 
   return (
     <Router>
@@ -20,13 +20,13 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/provider-dashboard" element={
-          userId ? <ProviderDashboard /> : <Navigate to="/login" />
+          email ? <ProviderDashboard /> : <Navigate to="/login" />
         } />
         <Route path="/create-profile" element={
-          userId ? <CreateProfile /> : <Navigate to="/login" />
+          email ? <CreateProfile /> : <Navigate to="/login" />
         } />
         <Route path="/edit-profile" element={
-          userId ? <CreateProfile /> : <Navigate to="/login" />
+          email ? <CreateProfile /> : <Navigate to="/login" />
         } />
         <Route path="/user-dashboard" element={<UserDashboard />} />
       </Routes>

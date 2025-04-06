@@ -3,11 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
+// Configure axios
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5678'
+    : 'https://service-hunt-react-1.onrender.com';
+
+axios.defaults.baseURL = API_URL;
+axios.defaults.withCredentials = true;
+
 function Login() {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        userId: '',
-        password: ''
+        Email: '',
+        Password: ''
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -20,25 +28,57 @@ function Login() {
         setError('');
 
         try {
-            const response = await axios.get('/providers');
-            const user = response.data.find(provider => 
-                provider.UserId == parseInt(formData.userId) && 
-                provider.Password == formData.password
-            );
+            // Trim whitespace from email
+            const email = formData.Email.trim();
+            const password = formData.Password;
+
+            // Basic validation
+            if (!email || !password) {
+                setError('Please enter both email and password');
+                setLoading(false);
+                return;
+            }
+
+            console.log('Attempting login with:', { email });
+            const response = await axios.post('/api/login', { email, password });
+            console.log('Login response:', response.data);
             
-            if (user) {
-                Cookies.set('userid', user.UserId);
-                Cookies.set('username', user.UserName);
-                navigate('/provider-dashboard');
+            if (response.data.success) {
+                const { user } = response.data;
+                console.log('Login successful, setting cookies for:', user);
+                Cookies.set('email', user.email);
+                Cookies.set('username', user.userName);
+                
+                // Check if user has a profile
+                try {
+                    const profileResponse = await axios.get(`/api/provider-profile/${user.email}`);
+                    if (profileResponse.data.success) {
+                        navigate('/provider-dashboard');
+                    } else {
+                        navigate('/create-profile');
+                    }
+                } catch (error) {
+                    // If profile not found or error, redirect to create profile
+                    navigate('/create-profile');
+                }
             } else {
-                setError('Invalid credentials. Please check your User ID and Password.');
+                console.log('Login failed:', response.data.message);
+                setError('Invalid credentials. Please check your email and password.');
             }
         } catch (error) {
             console.error('Login error:', error);
-            setError('Server error. Please try again later.');
+            console.log('Error response:', error.response?.data);
+            
+            if (error.response?.status === 401) {
+                setError('Invalid credentials. Please check your email and password.');
+            } else if (error.response?.data?.message) {
+                setError(error.response.data.message);
+            } else {
+                setError('Server error. Please try again later.');
+            }
+        } finally {
+            setLoading(false);
         }
-        
-        setLoading(false);
     };
 
     const handleBack = () => {
@@ -62,15 +102,15 @@ function Login() {
 
                                 <form onSubmit={handleSubmit}>
                                     <div className="mb-3">
-                                        <label className="form-label">Provider ID</label>
+                                        <label className="form-label">Email</label>
                                         <input
-                                            type="number"
+                                            type="text"
                                             className="form-control form-control-lg"
-                                            value={formData.userId}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, userId: e.target.value }))}
+                                            value={formData.Email}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, Email: e.target.value }))}
                                             required
                                             disabled={loading}
-                                            placeholder='eg: 1'
+                                            placeholder='Email'
                                         />
                                     </div>
 
@@ -79,11 +119,11 @@ function Login() {
                                         <input
                                             type="password"
                                             className="form-control form-control-lg"
-                                            value={formData.password}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                                            value={formData.Password}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, Password: e.target.value }))}
                                             required
                                             disabled={loading}
-                                            placeholder='eg: rohit'
+                                            placeholder='Password'
                                         />
                                     </div>
 
