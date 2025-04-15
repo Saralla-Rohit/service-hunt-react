@@ -1,6 +1,6 @@
 # 🛠️ ServiceHub - Find Local Service Providers Near You
 
-**ServiceHub** is a web application that connects users with nearby service providers for various needs — from electricians and plumbers to chefs, photographers, and more. Whether you need help around the house or want to hire a professional for a special event, ServiceHub makes it fast and easy.
+**ServiceHunt** is a web application that connects users with nearby service providers for various needs — from electricians and plumbers to chefs, photographers, and more. Whether you need help around the house or want to hire a professional for a special event, ServiceHunt makes it fast and easy.
 
 ---
 
