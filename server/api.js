@@ -417,25 +417,37 @@ app.post("/api/login", async (req, res) => {
             });
         }
 
+        // Add some debug logging
+        console.log('Login attempt for email:', email);
+
         // Find user in providers collection (case insensitive email match)
         const user = await db.collection("providers").findOne({ 
             email: { $regex: new RegExp('^' + email + '$', 'i') }
         });
-
+        
+        console.log('User found:', !!user);
+        
         if (!user) {
             return res.status(401).json({ 
                 success: false, 
-                message: "Invalid credentials" 
+                message: "Invalid email or password" 
             });
         }
 
-        // Compare password (in a real app, use bcrypt or similar)
-        if (user.password !== password) {
+        // Compare password (TODO: In production, use bcrypt or similar)
+        const passwordMatches = user.password === password;
+        console.log('Password matches:', passwordMatches);
+        
+        if (!passwordMatches) {
             return res.status(401).json({ 
                 success: false, 
-                message: "Invalid credentials" 
+                message: "Invalid email or password" 
             });
         }
+
+        // Check if user has a profile
+        const profile = await db.collection("providersInfo").findOne({ email: user.email });
+        console.log('Has profile:', !!profile);
 
         res.json({ 
             success: true, 
@@ -443,7 +455,8 @@ app.post("/api/login", async (req, res) => {
             user: {
                 userName: user.userName,
                 email: user.email
-            }
+            },
+            hasProfile: !!profile
         });
     } catch (err) {
         console.error("Login error:", err);

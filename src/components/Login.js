@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -20,8 +20,16 @@ function Login() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    // Check if already logged in
+    useEffect(() => {
+        const email = Cookies.get('email');
+        if (email) {
+            navigate('/provider-dashboard');
+        }
+    }, [navigate]);
+
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Prevent form submission
         if (loading) return;
         
         setLoading(true);
@@ -39,31 +47,30 @@ function Login() {
                 return;
             }
 
-            console.log('Attempting login with:', { email });
             const response = await axios.post('/api/login', { email, password });
-            console.log('Login response:', response.data);
             
             if (response.data.success) {
-                const { user } = response.data;
-                console.log('Login successful, setting cookies for:', user);
-                Cookies.set('email', user.email);
-                Cookies.set('username', user.userName);
+                const { user, hasProfile } = response.data;
                 
-                // Check if user has a profile
-                try {
-                    const profileResponse = await axios.get(`/get-profile/${user.email}`);
-                    if (profileResponse.data.success) {
-                        navigate('/provider-dashboard');
-                    } else {
-                        navigate('/create-profile');
-                    }
-                } catch (error) {
-                    // If profile not found or error, redirect to create profile
-                    navigate('/create-profile');
-                }
+                // Set cookies first
+                const cookieOptions = {
+                    secure: window.location.protocol === 'https:', // Only use secure flag on HTTPS
+                    sameSite: 'strict', // Protect against CSRF
+                    expires: 7, // Expire in 7 days
+                    path: '/' // Ensure cookie is available across all paths
+                };
+                
+                Cookies.set('email', user.email, cookieOptions);
+                Cookies.set('username', user.userName, cookieOptions);
+                
+                // Force a small delay to ensure cookies are set
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Then navigate
+                const targetPath = hasProfile ? '/provider-dashboard' : '/create-profile';
+                navigate(targetPath, { replace: true }); // Use replace to prevent back button issues
             } else {
-                console.log('Login failed:', response.data.message);
-                setError('Invalid credentials. Please check your email and password.');
+                setError(response.data.message || 'Invalid credentials. Please check your email and password.');
             }
         } catch (error) {
             console.error('Login error:', error);
