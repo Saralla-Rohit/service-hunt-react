@@ -3,8 +3,9 @@ const mongoClient = require("mongodb").MongoClient;
 const cors = require("cors");
 const path = require("path");
 require('dotenv').config();
-const app = express();
+const bcrypt = require("bcrypt"); // Add this line
 
+const app = express();
 // Basic CORS configuration
 app.use(cors({
     origin: ['http://localhost:3000', 'https://service-hunt-react-1.onrender.com'],
@@ -94,8 +95,7 @@ app.post("/register-user", async (req, res) => {
         }
 
         // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
+        if (!email.includes('@') || !email.includes('.') || email.includes(' ')) {
             return res.status(400).json({ 
                 success: false,
                 message: "Invalid email format" 
@@ -104,7 +104,7 @@ app.post("/register-user", async (req, res) => {
 
         // Check if email already exists (case insensitive)
         const existingUser = await db.collection("providers").findOne({ 
-            email: { $regex: new RegExp('^' + email + '$', 'i') }
+            email: email.toLowerCase()
         });
         if (existingUser) {
             return res.status(400).json({ 
@@ -113,11 +113,15 @@ app.post("/register-user", async (req, res) => {
             });
         }
 
-        // Register new user
+        // Hash the password
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        // Register new user with hashed password
         const user = {
             userName,
-            email,
-            password,
+            email: email.toLowerCase(), // Store email in lowercase
+            password: hashedPassword,
             mobile: mobile ? parseInt(mobile) : null
         };
         
@@ -304,23 +308,7 @@ app.get("/providersInfo", async (req, res) => {
     }
 });
 
-// Get all service providers info for dashboard
-app.get("/api/getAllProvidersInfo", async (req, res) => {
-    try {
-        const db = await connectDB();
-        const providers = await db.collection("providersInfo").find({}).toArray();
-        res.json({ 
-            success: true,
-            providers
-        });
-    } catch (err) {
-        console.error("Error getting providers info:", err);
-        res.status(500).json({ 
-            success: false,
-            message: "Failed to get providers info" 
-        });
-    }
-});
+
 
 // Get profiles by location
 app.get("/get-profiles/:location", async (req, res) => {
@@ -417,12 +405,11 @@ app.post("/api/login", async (req, res) => {
             });
         }
 
-        // Add some debug logging
         console.log('Login attempt for email:', email);
 
         // Find user in providers collection (case insensitive email match)
         const user = await db.collection("providers").findOne({ 
-            email: { $regex: new RegExp('^' + email + '$', 'i') }
+            email: email.toLowerCase()
         });
         
         console.log('User found:', !!user);
@@ -434,8 +421,8 @@ app.post("/api/login", async (req, res) => {
             });
         }
 
-        // Compare password (TODO: In production, use bcrypt or similar)
-        const passwordMatches = user.password === password;
+        // Compare password using bcrypt
+        const passwordMatches = await bcrypt.compare(password, user.password);
         console.log('Password matches:', passwordMatches);
         
         if (!passwordMatches) {
@@ -446,7 +433,9 @@ app.post("/api/login", async (req, res) => {
         }
 
         // Check if user has a profile
-        const profile = await db.collection("providersInfo").findOne({ email: user.email });
+        const profile = await db.collection("providersInfo").findOne({ 
+            email: user.email
+        });
         console.log('Has profile:', !!profile);
 
         res.json({ 
@@ -476,21 +465,14 @@ app.get('*', (req, res) => {
     }
 });
 
-// Catch-all route for serving index.html - MUST BE LAST
-app.get("*", (req, res) => {
-    // Only serve index.html for non-API routes
-    if (!req.path.startsWith('/api/')) {
-        res.sendFile(path.join(__dirname, '../public', 'index.html'));
-    }
-});
 
 // Ensure database connection before starting the server
 connectDB().then(() => {
     const PORT = process.env.PORT || 5678;
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
-        console.log('Node environment:', process.env.NODE_ENV);
-        console.log('MongoDB URI exists:', !!process.env.MONGODB_URI);
+        // console.log('Node environment:', process.env.NODE_ENV);
+        console.log('MongoDB URI exists:', !!process.env.MONGO_URL);
     });
 }).catch(err => {
     console.error("Failed to start server:", err);
